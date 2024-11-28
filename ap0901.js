@@ -123,13 +123,11 @@ function init() {
   
   // 描画関数
   function render() {
-  sphere.children.forEach((sphere) => {
-    sphere.rotation.y
-      = (sphere.rotation.y + 0.01) % (2 * Math.PI);
-      sphere.position.y=Math.sin(sphere.rotation.y);
-  });
-  renderer.render(scene, camera);
-  requestAnimationFrame(render);
+    sphere.children.forEach((sphere) => {
+      sphere.rotation.y
+        = (sphere.rotation.y + 0.01) % (2 * Math.PI);
+        sphere.position.y=Math.sin(sphere.rotation.y);
+    });
     // 座標軸の表示
     axes.visible = param.axes;
     // 描画
