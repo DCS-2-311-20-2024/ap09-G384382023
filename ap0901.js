@@ -67,6 +67,8 @@ function init() {
       0.6 * window.innerWidth);
     renderer2.domElement.style.position = "absolute";
     renderer2.domElement.style.zIndex = 1;
+    renderer2.domElement.style.top = nameHeight;
+  }
 const orbitControls=new OrbitControls(camera,renderer.domElement);
 orbitControls.listenToKeyEvents(window);
 orbitControls.enableDamping=true;
