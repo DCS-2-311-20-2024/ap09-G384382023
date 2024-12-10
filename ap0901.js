@@ -16,11 +16,13 @@ function init() {
   // 制御変数の定義
   const param = {
     axes: true, // 座標軸
+    //follow: false,//追跡
   };
 
   // GUIコントローラの設定
   const gui = new GUI();
   gui.add(param, "axes").name("座標軸");
+  //gui.add(param, "follow").name("追跡");
 
   // シーン作成
   const scene = new THREE.Scene();
@@ -38,12 +40,9 @@ function init() {
   camera.updateProjectionMatrix();
   // 第2のカメラ
   const camera2 = new THREE.PerspectiveCamera(
-    50, 2/10, 0.1, 1000);
-    camera2.position.set(0, 180, 60);
-    camera2.lookAt(0, 0, 6);
-    // camera2.aspect=2/10;
-    // camera2.updateProjectionMatrix();
-
+    20, 2/10, 0.1, 10);
+  //camera2.position.copy(camera2Position);
+  camera2.up.set(0,1,0);
   // 第1のレンダラ
   const nameHeight = document.getElementById("output1").clientHeight;
   const renderer = new THREE.WebGLRenderer();
@@ -102,13 +101,14 @@ orbitControls.enableDamping=true;
   const xwing=new THREE.Group(); // モデルを格納する変数
   let xwingModel;
   let theta = Math.random();
+  const orbitRadius = 1; // 地球を中心とする飛行機の軌道半径
   function loadModel() { // モデル読み込み関数の定義
     const loader = new GLTFLoader();
     loader.load(
       "xwing.glb", //モデルのファイル
       (gltf) => { //読み込み終わりに実行する関数
         xwingModel= gltf.scene;//取り出す
-        xwingModel.position.set(-15,0,0);
+        xwingModel.position.set(-11,0,-1);
         xwing.add(xwingModel);
         
         scene.add(xwing);
@@ -120,34 +120,6 @@ orbitControls.enableDamping=true;
   }
   loadModel(); // モデル読み込み実行
 
-  // // 自動操縦コースの設定
-  // // 制御点
-  // const controlPoints = [
-  //   [10, 10, 10],
-  //   [31, 5, 40],
-  //   [40, 5, 40],
-  //   [40, 10, -20],
-  //   [-40, 10, -20],
-  //   [-40, 0, 20],
-  //   [40, -3, 20],
-  //   [40, -3, -40],
-  //   [0, 0, -40],
-  // ]
-  // // コースの補間
-  // const p0 = new THREE.Vector3();
-  // const p1 = new THREE.Vector3();
-  // const course = new THREE.CatmullRomCurve3(
-  //   controlPoints.map((p, i) => {
-  //     p0.set(...p);
-  //     p1.set(...controlPoints[(i + 1) % controlPoints.length]);
-  //     return [
-  //       (new THREE.Vector3()).copy(p0),
-  //       (new THREE.Vector3()).lerpVectors(p0, p1, 1 / 3),
-  //       (new THREE.Vector3()).lerpVectors(p0, p1, 2 / 3),
-  //     ];
-  //   }).flat(), true
-  // );
-
   // レンダラーの配置
   document.getElementById("output1").appendChild(renderer.domElement);
   document.getElementById("output2").appendChild(renderer2.domElement);
@@ -155,10 +127,7 @@ orbitControls.enableDamping=true;
 
   // 描画処理
   // 描画のための変数
-  const clock = new THREE.Clock();
-  const xwingPosition = new THREE.Vector3();
-  const xwingTarget = new THREE.Vector3();
-  const cameraPosition = new THREE.Vector3();
+  //const camera2Position=new THREE.Vector3();
   // 描画関数
   // function render() {
   //   //xwing の位置と向きの設定
@@ -181,34 +150,87 @@ orbitControls.enableDamping=true;
 
   const ambLight = new THREE.AmbientLight(0x808080, 2);
   scene.add(ambLight);
-  const vec = new THREE.Vector3(1,0,0).normalize();
   // 描画関数
-  function render() {
-    //xwing動き
-      //xwing.position.x=10*Math.cos(theta);
-      //xwing.position.z=10*Math.sin(theta);
-      //xwing.translation.z=-10;//*Math.cos(theta);
-      theta=(theta + 0.01)%(2 * Math.PI);
-      xwing.rotateOnWorldAxis(vec,0.1);
-      //xwingModel.rotateOnAxis(vec,-0.1);
-      //console.log(theta);
+  // function render() {
+  //   //xwing動き
+  //     //xwing.position.x=10*Math.cos(theta);
+  //     //xwing.position.z=10*Math.sin(theta);
+  //     //xwing.translation.z=-10;//*Math.cos(theta);
+  //     theta=(theta + 0.01)%(2 * Math.PI);
+  //     xwing.rotateOnWorldAxis(vec,0.1);
+  //     //xwingModel.rotateOnAxis(vec,-0.1);
+  //     //console.log(theta);
+  //   // 飛行機の軌道運動
+  //   theta += 0.03; // 飛行機の回転速度
+  //   xwing.position.x = -orbitRadius * Math.cos(theta);
+  //   xwing.position.z = orbitRadius * Math.sin(theta);
+  //   xwing.lookAt(sphere.position); // 飛行機が常に地球を向く
 
 
-  sphere.children.forEach((sphere) => {
-    sphere.rotation.y
-      = (sphere.rotation.y + 0.01) % (2 * Math.PI);
-      sphere.position.y=Math.sin(sphere.rotation.y);
-  });
-    // 座標軸の表示
-    axes.visible = param.axes;
-    //カメラ
-    orbitControls.update();
-    // 描画
-    renderer.render(scene, camera);
-    renderer2.render(scene,camera2);
-    // 次のフレームでの描画要請
-    requestAnimationFrame(render);
-  }
+  // sphere.children.forEach((sphere) => {
+  //   sphere.rotation.y
+  //     = (sphere.rotation.y + 0.01) % (2 * Math.PI);
+  //     sphere.position.y=Math.sin(sphere.rotation.y);
+  // });
+  // //xwingの後方
+  // // camera2Position.lerpVectors(xwingTarget, xwingPosition, -10);
+  // // camera2Position.y +=2.5;
+  // // camera2.position.copy(camera2Position);
+  // // camera2.lookAt(xwing.position);//飛行機を見る
+  // // camera2.up.set(0,1,0);
+  //   // 座標軸の表示
+  //   axes.visible = param.axes;
+  //   //カメラ
+  //   orbitControls.update();
+  //   // 描画
+  //   renderer.render(scene, camera);
+  //   renderer2.render(scene,camera2);
+  //   // 次のフレームでの描画要請
+  //   requestAnimationFrame(render);
+  // }
+  // 描画関数
+function render() {
+  // xwingの動き
+  theta += 0.03; // 飛行機の回転速度
+  xwing.position.x = -orbitRadius * Math.cos(theta);
+  xwing.position.z = orbitRadius * Math.sin(theta);
+  xwing.lookAt(sphere.position); // xwingが常に地球を向く
+
+  // xwingの後方にカメラ2を配置
+  const offset = new THREE.Vector3(0, 2, -5); // xwing後方オフセット (後方5, 上2)
+  const quaternion = new THREE.Quaternion();
+  xwing.getWorldQuaternion(quaternion); // xwingの向きを取得
+  const camera2Position = offset.applyQuaternion(quaternion).add(xwing.position); // オフセットを適用
+
+  camera2.position.copy(camera2Position); // カメラ2の位置を更新
+  camera2.lookAt(xwing.position); // カメラ2がxwingを注視する
+
+  // if (param.follow) {
+  //   //xwingの後方
+  //   camera2Position.lerpVectors(xwingTarget, xwingPosition, 4);
+  //   camera2Position.y += 2.5;
+  //   camera.position.copy(cameraPosition);
+  //   camera.lookAt(xwing.position);//飛行機を見る
+  //   camera.up.set(0,1,0);
+  // }
+
+  // 地球の回転
+  sphere.rotation.y = (sphere.rotation.y + 0.01) % (2 * Math.PI);
+
+  // 座標軸の表示
+  axes.visible = param.axes;
+
+  // カメラ1の操作（OrbitControls）
+  orbitControls.update();
+
+  // 描画
+  renderer.render(scene, camera); // メインビュー描画
+  renderer2.render(scene, camera2); // 飛行機追尾ビュー描画
+
+  // 次のフレームでの描画をリクエスト
+  requestAnimationFrame(render);
+}
+
 
   // 描画開始
 }
